@@ -1,0 +1,196 @@
+apply plugin: 'maven'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+
+//指定JDK版本,改成系统中版本
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+[compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+
+
+configurations.all {
+    // check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
+}
+
+
+List logger = [
+        'ch.qos.logback:logback-classic:1.1.11',
+        'log4j:log4j:1.2.17',
+]
+
+def spring_version = "4.3.27.RELEASE"
+List spring = [
+        "org.springframework:spring-core:$spring_version",
+        "org.springframework:spring-beans:$spring_version",
+        "org.springframework:spring-context:$spring_version",
+        "org.springframework:spring-tx:$spring_version",
+        "org.springframework:spring-jdbc:$spring_version",
+        "org.springframework:spring-test:$spring_version"
+]
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    compile logger, spring
+    compile 'org.apache.commons:commons-lang3:3.1'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
+    compile 'io.netty:netty-all:4.1.50.Final'
+    compile 'io.netty:netty-tcnative:2.0.30.Final'
+    compile 'com.google.guava:guava:29.0-jre'
+    compile 'commons-collections:commons-collections:3.2.1'
+    //thanos-common
+    compile 'com.netease.blockchain.thanos:thanos-common:1.1.1.RELEASE'
+    // web3j依赖
+    compile 'com.lambdaworks:scrypt:1.4.0',
+            //'org.apache.httpcomponents:httpclient:4.5.5',
+            'com.squareup:javapoet:1.7.0',
+            'io.reactivex:rxjava:1.2.4',
+            'com.github.jnr:jnr-unixsocket:0.15',
+            'com.cedarsoftware:java-util:1.8.0',
+            'com.squareup.okhttp3:okhttp:4.9.0'
+
+    //jmeter测试
+//    compile 'org.apache.jmeter:ApacheJMeter_core:5.3',
+//            'org.apache.jmeter:ApacheJMeter_java:5.3'
+
+    compile 'com.google.code.gson:gson:2.8.5',
+            'com.google.protobuf:protobuf-java-util:3.12.0',
+            'com.github.briandilley.jsonrpc4j:jsonrpc4j:1.4.6',
+            'com.typesafe:config:1.2.1'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            srcDir 'src/test/java'
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+}
+
+jar {
+    destinationDir file('dist/apps')
+    exclude '**/*.xml'
+    exclude '**/*.properties'
+
+    doLast {
+        copy {
+            from file('tools/')
+            into 'dist/'
+        }
+        copy {
+            from configurations.runtime
+            into 'dist/lib'
+        }
+        copy {
+            from file('src/main/resources/')
+            into 'dist/conf'
+        }
+    }
+}
+task customFatJar(type: Jar) {
+    destinationDir file('dist/apps')
+    archiveName 'thanos-web3j-sdk.jar'
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    manifest {
+        attributes 'Main-Class': 'com.thanos.web3j.Main'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+
+archivesBaseName = 'thanos-web3j'
+group = 'com.netease.blockchain.thanos'
+version = '1.7.3-SNAPSHOT'
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+
+
+//================================= 打jar包 =====================================
+
+//删除 旧的.jar包 任务
+task cleanJar(type: Delete) {
+    FileTree tree = fileTree("build/libs/")
+    tree.visit {
+        element ->
+            if (element.getName().endsWith(".jar")) {
+                println "$element.file.name" + " " + element.getName()
+                delete element.file
+            }
+    }
+}
+task makeJar(type: Jar) {
+    //指定生成的jar名
+    archiveName 'thanos-web3j-1.0-SNAPSHOT.jar'
+    //从哪里打包class文件
+    from('build/classes/java/main/', 'build/resources/main/')
+    //打包到jar后的目录结构
+//    into('com/hd/test/sdk/')
+    //去掉不需要打包的目录和文件
+//    exclude('BuildConfig.class','R.class')
+    //去掉R$开头的文件
+//    exclude{it.name.startsWith('R$')}
+}
+makeJar.dependsOn(cleanJar, build)
+
+//=============================== //上传jar包到maven库 ====================
+
+//======================================================================
+
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+
+
+
+            artifactId project.name
+            groupId project.group
+            version project.version
+
+            from components.java
+//			artifact sourcesJar
+
+            pom {
+                name = 'thanos-web3j'
+                description = 'thanos-web3j'
+                url = 'https://blockchain.163.com'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'blockchain.dev'
+                        name = 'blockchain.dev'
+                        email = 'blockchain.dev@163.com'
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+

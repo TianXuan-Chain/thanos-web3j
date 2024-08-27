@@ -1,0 +1,31 @@
+### Java template
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+### Gradle template
+.gradle
+/build
+gradle.properties
+
+
+!gradle-wrapper.jar
+
+# Cache of project
+.gradletasknamecache
+
+.idea
+*.iml
+
+# OS X
+.DS_Store
+
+/target
+/out
+/logs
+/log
+/dist
+/output
