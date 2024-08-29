@@ -21,145 +21,13 @@ thanos-web3j 是用来访问 thanos-chain 节点的 java API
 ## 依赖软件 
 编译打包 thanos-web3j 之前需要安装下述依赖软件:
 - git
-  下载开发部署工具的源码需要依赖git，安装命令如下：
-  ```
-  # Ubuntu
-  $ sudo apt install -y git
-  # CentOS
-  $ sudo yum install -y git
-  ```
-  配置 git 密钥：
-  1. 将自己的 github 账户私钥上传到 "~/.ssh/" 目录下
-  2. 修改私钥访问权限 “chmod 600 ~/.ssh/id_rsa ~/.ssh/id_rsa.pub”
 - Oracle JDK 1.8
-  ```
-  # 创建新的文件夹，安装Java 8或以上的版本，将下载的jdk放在software目录
-  # 从Oracle官网( https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html ) 选择Java 8版本下载，推荐下载jdk-8u201-linux-x64.tar.gz
-  $ mkdir /software
-  # 解压jdk
-  $ tar -zxvf jdk-8u201-linux-x64.tar.gz
-  # 配置Java环境，编辑/etc/profile文件
-  $ vim /etc/profile
-  # 打开以后将下面三句输入到文件里面并退出
-  export JAVA_HOME=/software/jdk1.8.0_201  #这是一个文件目录，非文件
-  export PATH=$JAVA_HOME/bin:$PATH
-  export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
-  # 生效profile
-  $ source /etc/profile
-  # 查询Java版本，出现的版本是自己下载的版本，则安装成功。
-  $ java -version
-  ```
-  配置 jdk 熵池
-  ```
-  打开$JAVA_PATH/jre/lib/security/java.security这个文件，找到下面的内容：
-  securerandom.source=file:/dev/random
-  替换成
-  securerandom.source=file:/dev/urandom
-  ```
 - Maven 3.3.9
-  ```
-  # 下载安装文件
-  $ cd /software
-  $ wget http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
-  # 解压maven
-  $ tar -zxvf apache-maven-3.3.9-bin.tar.gz
-  # 配置环境变量
-  # 使用vim编辑/etc/profile文件
-  $ vim /etc/profile
-  # 在/etc/profile文件末尾增加以下配置：
-  MAVEN_HOME=/software/apache-maven-3.3.9
-  $ export PATH=${MAVEN_HOME}/bin:${PATH}
-  # 生效profile
-  $ source /etc/profile
-  # 查询Maven版本，出现的版本是自己下载的版本，则安装成功。
-  $ mvn -v
-  ```
-  国内服务器有需要的话，在 maven 的 setting.xml 中更新一下 aliyun 的镜像源，后续在执行 maven 执行的时候，下载速度会快一些
-  ```
-  <id>nexus-aliyun</id>
-  <mirrorOf>central</mirrorOf>
-  <name>Nexus aliyun</name>
-  <url>http://maven.aliyun.com/nexus/content/groups/public</url>
-  ```
-  在应用的maven打包过程中，需要将打包依赖的thanos系统组件上传至maven私库。因此，需要修改$MAVEN_HOME/conf/settings.xml文件，添加私库配置。示例如下：
-  ```
-  ...
-  <!--添加私库管理者，用于上传jar包 -->
-  <servers>
-  ...
-    <server>
-      <id>nexus-releases</id>
-      <username>admin</username>
-      <password>123456</password>
-    </server>
-    <server>
-      <id>nexus-snapshots</id>
-      <username>admin</username>
-      <password>123456</password>
-    </server>
-  ...
-  </servers>
-
-  <profiles>
-  ...
-  <!--添加maven私库配置，用于下载jar包-->
-    <profile>
-      <id>standard-extra-repos</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <repositories>
-        <repository>
-          <id>netease-public</id>
-          <name>Netease Repos</name>
-          <url>https://epaymvn.hz.netease.com/nexus/content/repositories/public/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-        </repository>
-      </repositories>
-    </profile>
-  </profiles>
-  ```
 - Gradle
-  ```
-  # 下载 gradle 文件
-  $ wget https://services.gradle.org/distributions/gradle-5.6.2-all.zip -P /software
-  # 解压
-  $ sudo unzip -d /software/gradle /software/gradle-5.6.2-all.zip
-  # 修改配置
-  $ sudo vim /etc/profile.d/gradle.sh
-  # 将下面下面写入 gradle.sh 中
-  # export GRADLE_HOME=/software/gradle/gradle-5.6.2
-  # export PATH=${GRADLE_HOME}/bin:${PATH}
-  # 执行脚本
-  $ sudo chmod +x /etc/profile.d/gradle.sh
-  $ source /etc/profile.d/gradle.sh
-  # 验证 gradle 安装
-  $ gradle -v
-  ```
 - dos2unix && lsof: 用于处理windows文件上传到linux服务器时，文件格式无法被linux正确解析的问题
-  可用如下命令安装这些软件：
-  ```shell
-  [centos]
-  sudo yum -y install git
-  sudo yum -y install dos2unix
-  sudo yum -y install lsof
-
-  [ubuntu]
-  sudo apt install git
-  sudo apt install lsof
-  sudo apt install tofrodos
-  ln -s /usr/bin/todos /usr/bin/unxi2dos
-  ln -s /usr/bin/fromdos /usr/bin/dos2unix
-  ```
 
 ## 编译sdk源码
 - 从 git 上拉取代码
-- 编译 thanos-web3j 源码，生成 jar 包
   ```bash
   #=== 进入 thanos-web3j 源码放置目录（假设为/mydata/）=====
   $ mkdir -p /mydata
@@ -167,7 +35,9 @@ thanos-web3j 是用来访问 thanos-chain 节点的 java API
 
   #==== 拉取 git 代码 ====
   $ git clone https://github.com/netease-blockchain/thanos-web3j
-
+  ```
+- 编译 thanos-web3j 源码，生成 jar 包
+  ```bash
   #===编译 thanos-web3j 源码，生成 dist 目录 ===
   $ cd thanos-web3j
   $ gradle build
