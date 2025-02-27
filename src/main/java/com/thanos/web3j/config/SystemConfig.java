@@ -100,6 +100,7 @@ public class SystemConfig {
     private String certsPath;
     private String keyPath;
     private String logConfigPath;
+    private String token;
 
     public SystemConfig(Integer web3Size, Integer checkInterval, List<String> gatewayHttpIPList, List<String> gatewayRpcIPList,
                         Boolean needTLS, String certsPath, String keyPath, String logConfigPath) {
@@ -262,6 +263,13 @@ public class SystemConfig {
             keyPath = config.getString("tls.keyPath");
         }
         return keyPath;
+    }
+
+    public String getToken(){
+        if (token == null && config.hasPath("gateway.token")) {
+            token = config.getString("gateway.token");
+        }
+        return token;
     }
 }
 

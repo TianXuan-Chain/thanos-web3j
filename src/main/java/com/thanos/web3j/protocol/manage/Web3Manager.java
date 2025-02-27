@@ -82,7 +82,7 @@ public class Web3Manager {
 
 
     private void initGatewayConnectors() {
-        this.rpcHttpStrList = getHttpUrlFromIpList(systemConfig.gatewayHttpIPList());
+        this.rpcHttpStrList = getHttpUrlFromIpList(systemConfig.gatewayHttpIPList(), systemConfig.getToken());
         this.httpMaxCount = rpcHttpStrList.size();
 
         List<String> rpcIpStrList = systemConfig.gatewayRpcIPList();
@@ -131,13 +131,19 @@ public class Web3Manager {
         }
     }
 
-    private List<String> getHttpUrlFromIpList(List<String> ipList) {
+    private List<String> getHttpUrlFromIpList(List<String> ipList, String token) {
         List<String> urlList = new ArrayList<>();
         if (CollectionUtils.isEmpty(ipList)) {
             return urlList;
         }
         for (String ip : ipList) {
-            String url = "http://" + ip + "/rpc";
+            String url ;
+            if (token != null){
+                url = "http://" + ip + "/rpc/" + token;
+            } else {
+                url = "http://" + ip + "/rpc";
+            }
+
             urlList.add(url);
         }
         return urlList;
